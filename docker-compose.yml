@@ -1,0 +1,61 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: "production"
+      PORT: "3000"
+
+      # Use internal Postgres by default. Override in your Hostinger panel if needed.
+      DATABASE_URL: "${DATABASE_URL:-postgres://postgres:postgres@db:5432/mastermerger}"
+
+      OHIP_BASE_URL: "${OHIP_BASE_URL:-}"
+      OHIP_CLIENT_ID: "${OHIP_CLIENT_ID:-}"
+      OHIP_CLIENT_SECRET: "${OHIP_CLIENT_SECRET:-}"
+      OHIP_HOTEL_ID: "${OHIP_HOTEL_ID:-}"
+      OHAPP_KEY: "${OHAPP_KEY:-}"
+      OHIP_ORIGINATING_APP: "${OHIP_ORIGINATING_APP:-}"
+      OHIP_EXTERNAL_SYSTEM: "${OHIP_EXTERNAL_SYSTEM:-}"
+      OHIP_SCOPES: "${OHIP_SCOPES:-}"
+
+      API_BASE_URL: "${API_BASE_URL:-}"
+      FRONTEND_URL: "${FRONTEND_URL:-}"
+      CORS_ORIGIN: "${CORS_ORIGIN:-}"
+
+      SMTP_HOST: "${SMTP_HOST:-}"
+      SMTP_PORT: "${SMTP_PORT:-}"
+      SMTP_USER: "${SMTP_USER:-}"
+      SMTP_PASSWORD: "${SMTP_PASSWORD:-}"
+      EMAIL_FROM: "${EMAIL_FROM:-}"
+
+      REDIS_URL: "${REDIS_URL:-}"
+      JWT_SECRET: "${JWT_SECRET:-}"
+
+      # Admin for in-app Settings editing
+      ADMIN_TOKEN: "${ADMIN_TOKEN:-}"
+      ENV_EDIT_ALLOWLIST: "${ENV_EDIT_ALLOWLIST:-}"
+      ENV_EDIT_MASKED: "${ENV_EDIT_MASKED:-}"
+      SETTINGS_EDIT_ALLOWLIST: "${SETTINGS_EDIT_ALLOWLIST:-}"
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: "${POSTGRES_DB:-mastermerger}"
+      POSTGRES_USER: "${POSTGRES_USER:-postgres}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-postgres}"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  pgdata:
